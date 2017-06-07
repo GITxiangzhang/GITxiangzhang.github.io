@@ -2,7 +2,7 @@
 title: I M ZX
 description: "A blog about lorem ipsum ..."
 baseurl: "/xiangzhang.github.io" # for test: remove string '/space-jekyll-templa' to ''
-url: "https://gitxiangzhang.github.io/xiangzhang.github.io/" # for test: remove string 'http://victorvoid.github.io' to '' but in production: 'https://yourusername.githu.io'
+url: "https://gitxiangzhang.github.io/xiangzhang.github.io" # for test: remove string 'http://victorvoid.github.io' to '' but in production: 'https://yourusername.githu.io'
 # User settings
 username: xiangzhang
 user_title: Zhang xiang- FrontEnd
