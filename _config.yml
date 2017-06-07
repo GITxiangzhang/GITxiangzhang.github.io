@@ -1,0 +1,31 @@
+name: ZX Blog
+author: zhangxiang
+baseurl: /xiangzhang.github.io
+description: 小小前端攻城狮
+github: https://github.com/GITxiangzhang
+twitter: https://github.com/GITxiangzhang
+facebook: https://github.com/GITxiangzhang
+linkedin: https://github.com/GITxiangzhang
+email: 1213086100@qq.com
+location: 42°2'16"N   70°12'47"W
+disqus: diqus-username
+
+##Make sure to edit the above fields, especially for disqus.
+
+
+highlighter: pygments
+markdown: redcarpet
+redcarpet:
+  extensions: ["tables"]
+
+defaults:
+  - scope:
+      path: ""
+      type: "pages"
+    values:
+      layout: "default"
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
