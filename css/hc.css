@@ -384,7 +384,10 @@ img
 {
   max-width:100%;
 }
-
+#meimage{
+  height: 130px;
+  margin: 26px;
+}
 #article
 {
   margin-bottom:30px;
@@ -750,8 +753,5 @@ time
   height: 50%;
   font-size: small;
 }
-#meimage{
-  height: 130px;
-  margin: 26px;
-}
+
 }
