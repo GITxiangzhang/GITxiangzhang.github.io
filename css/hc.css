@@ -750,5 +750,8 @@ time
   height: 50%;
   font-size: small;
 }
-
+#meimage{
+  height: 130px;
+  margin: 26px;
+}
 }
