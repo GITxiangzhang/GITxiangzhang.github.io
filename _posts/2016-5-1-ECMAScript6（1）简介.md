@@ -71,7 +71,7 @@ ES6 从开始制定到最后发布，整整用了15年。
 
 
 #### 部署进度
-各大浏览器的最新版本，对 ES6 的支持可以查看[kangax.github.io/es5-compat-table/es6/]: https:kangax.github.io/es5-compat-table/es6/。随着时间的推移，支持度已经越来越高了，超过90%的 ES6 语法特性都实现了。
+各大浏览器的最新版本，对 ES6 的支持可以查看[kangax.github.io/es5-compat-table/es6/](https:kangax.github.io/es5-compat-table/es6/)。随着时间的推移，支持度已经越来越高了，超过90%的 ES6 语法特性都实现了。
 
 Node 是 JavaScript 的服务器运行环境（runtime）。它对 ES6 的支持度更高。除了那些默认打开的功能，还有一些语法功能已经实现了，但是默认没有打开。使用下面的命令，可以查看 Node 已经实现的 ES6 特性。
 
@@ -92,7 +92,7 @@ Your runtime supports 57% of ECMAScript 6
 {% endhighlight %}
 
 #### babel
-babel详见[2016-1-1-babel转码器项目中的应用.md]:https://gitxiangzhang.github.io/xiangzhang.github.io/2016/01/01/babel%E8%BD%AC%E7%A0%81%E5%99%A8%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8.html
+babel详见[2016-1-1-babel转码器项目中的应用.md](https://gitxiangzhang.github.io/xiangzhang.github.io/2016/01/01/babel%E8%BD%AC%E7%A0%81%E5%99%A8%E9%A1%B9%E7%9B%AE%E4%B8%AD%E7%9A%84%E5%BA%94%E7%94%A8.html)
 
 
 
