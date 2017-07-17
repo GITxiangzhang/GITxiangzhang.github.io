@@ -174,60 +174,204 @@ console.log(a)//1
 
 上面两个代码块都申明了a,但是用let申明输出的是 1 ,这表示外层代码块不受内层代码块的影响。
 
+##### 块级作用域与函数声明
+函数能不能在块级作用域之中声明？这是一个相当令人混淆的问题。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-按照惯例我们来个helloworld入门。
-
-##### 包管理器
-npm可以自动管理包的依赖，只需要安装你要的包，不需要考虑依赖。
-在 PHP 中, 包管理使用的 Composer, python 中，包管理使用 easy_install 或者 pip，ruby 中我们使用 gem。而在 Node.js中，对应就是 npm，npm 是 Node.js Package Manager 的意思。
-
-##### express框架
-express框架是node.js应用最广泛的web框架，现在是4.x的版本。
-express官网[http://www.expressjs.com.cn/](http://www.expressjs.com.cn/)，没事经常看看API。
-
-1.新建一个文件夹nodestart进去安装express
-
-![nodestart]({{ site.baseurl }}/images/installexpress.png)
-
-安装完后nodestart目录下会出现一个node_modules文件夹，tree(dos命令符)看看里包含express文件夹说明安装成
-
-2.新建一个app.js,写进去代码：
+ES5 规定，函数只能在顶层作用域和函数作用域之中声明，不能在块级作用域声明。
 
 {% highlight javascript %}
+//情况一
+if(true){
+  function f(){}
+ }
 
+//情况二
+try{
+  function f(){}
+ }catch(e){
+ }
 {% endhighlight %}
 
-3.执行node app.js
+上面两种函数声明，根据 ES5 的规定都是非法的。
 
-这时候我们的app 就跑起来了，终端中会输出 app is listening at port 3000,这时我们打开浏览器，访问 http://localhost:3000/，会出现 Hello World。如果没有出现的话，肯定是上述哪一步弄错了，自己调试一下。
+但是，浏览器没有遵守这个规定，为了兼容以前的旧代码，还是支持在块级作用域之中声明函数，因此上面两种情况实际都能运行，不会报错。
 
-#### Tips
-##### 端口
-端口的作用：通过端口来区分出同一电脑内不同应用或者进程，从而实现一条物理网线(通过分组交换技术-比如internet)同时链接多个程序 Port_(computer_networking)
-端口号是一个 16位的 uint, 所以其范围为 1 to 65535 (对TCP来说, port 0 被保留，不能被使用. 对于UDP来说, source端的端口号是可选的， 为0时表示无端口).
-app.listen(3000)，进程就被打标，电脑接收到的3000端口的网络消息就会被发送给我们启动的这个进程
+ES6 引入了块级作用域，明确允许在块级作用域之中声明函数。ES6 规定，块级作用域之中，函数声明语句的行为类似于let，在块级作用域之外不可引用。
+
+{% highlight javascript %}
+function f() { console.log('I am outside!'); }
+
+(function () {
+  if (true) {
+    // 重复声明一次函数f
+    function f() { console.log('I am inside!'); }
+  }
+
+  f();
+}());
+{% endhighlight %}
+上面代码在 ES5 中运行，会得到“I am inside!”，因为在if内声明的函数f会被提升到函数头部。
+
+ES6 就完全不一样了，理论上会得到“I am outside!”。因为块级作用域内声明的函数类似于let，对作用域之外没有影响。但是，如果你真的在 ES6 浏览器中运行一下上面的代码，是会报错的，这是为什么呢？
+
+原来，如果改变了块级作用域内声明的函数的处理规则，显然会对老代码产生很大影响。为了减轻因此产生的不兼容问题，ES6在附录B里面规定，浏览器的实现可以不遵守上面的规定，有自己的行为方式。
+
+  -允许在块级作用域内声明函数。
+  -函数声明类似于var，即会提升到全局作用域或函数作用域的头部。
+  -同时，函数声明还会提升到所在的块级作用域的头部。
+
+根据这三条规则，在浏览器的 ES6 环境中，块级作用域内声明的函数，行为类似于var声明的变量。
+
+{% highlight javascript %}
+// 浏览器的 ES6 环境
+function f() { console.log('I am outside!'); }
+
+(function () {
+  if (false) {
+    // 重复声明一次函数f
+    function f() { console.log('I am inside!'); }
+  }
+
+  f();
+}());
+// Uncaught TypeError: f is not a function
+{% endhighlight %}
+
+上面的代码在符合 ES6 的浏览器中，都会报错，因为实际运行的是下面的代码。
+
+{% highlight javascript %}
+// 浏览器的 ES6 环境
+function f() { console.log('I am outside!'); }
+(function () {
+  var f = undefined;
+  if (false) {
+    function f() { console.log('I am inside!'); }
+  }
+
+  f();
+}());
+// Uncaught TypeError: f is not a function
+{% endhighlight %}
+
+考虑到环境导致的行为差异太大，应该避免在块级作用域内声明函数。如果确实需要，也应该写成函数表达式，而不是函数声明语句。
+
+{% highlight javascript %}
+// 函数声明语句
+{
+  let a = 'secret';
+  function f() {
+    return a;
+  }
+}
+
+// 函数表达式
+{
+  let a = 'secret';
+  let f = function () {
+    return a;
+  };
+}
+{% endhighlight %}
+
+另外，还有一个需要注意的地方。ES6 的块级作用域允许声明函数的规则，只在使用大括号的情况下成立，如果没有使用大括号，就会报错。
+
+{% highlight javascript %}
+// 不报错
+'use strict';
+if (true) {
+  function f() {}
+}
+
+// 报错
+'use strict';
+if (true)
+  function f() {}
+{% endhighlight %}
+
+#### const
+const 声明一个只读常量。一旦声明，常量的值就不能改变。
+
+{% highlight javascript %}
+const PI=3.1415926;
+
+PI =3;
+// TypeError: Assignment to constant variable.
+{% endhighlight %}
+
+上面代码表明改变常量的值会报错。
+
+const声明的变量不得改变值，这意味着，const一旦声明变量，就必须立即初始化，不能留到以后赋值。
+{% highlight javascript %}
+const foo;
+// SyntaxError: Missing initializer in const declaration
+{% endhighlight %}
+上面代码表示，对于const来说，只声明不赋值，就会报错。
+
+const命令声明的常量也是不提升，同样存在暂时性死区，只能在声明的位置后面使用。
+
+#### 本质
+const实际上保证的，并不是变量的值不得改动，而是变量的那个内存地址不得改动。对于简单类型的数据（数值、字符串、布尔值），值就保存在变量的那个内存地址，因此等同于常量。
+但对于复合类型的数据（主要是对象和数组），变量的内存地址，保存的只是一个指针，const只能保证这个指针是固定的，至于它指向的数据结构是不是可变的，就完全不能控制了。因此，将一个对象声明为常量必须非常小心。
+
+{% highlight javascript %}
+const foo = {};
+
+// 为 foo 添加一个属性，可以成功
+foo.prop = 123;
+foo.prop // 123
+
+// 将 foo 指向另一个对象，就会报错
+foo = {}; // TypeError: "foo" is read-only
+{% endhighlight %}
+
+上面代码中，常量foo储存的是一个地址，这个地址指向一个对象。不可变的只是这个地址，即不能把foo指向另一个地址，但对象本身是可变的，所以依然可以为其添加新属性。
+
+#### 顶层对象的属性
+顶层对象，在浏览器环境指的是window对象，在Node指的是global对象。ES5之中，顶层对象的属性与全局变量是等价的。
+{% highlight javascript %}
+window.a = 1;
+a // 1
+
+a = 2;
+window.a // 2
+{% endhighlight %}
+
+上面代码中，顶层对象的属性赋值与全局变量的赋值，是同一件事。
+
+顶层对象的属性与全局变量挂钩，被认为是JavaScript语言最大的设计败笔之一。这样的设计带来了几个很大的问题，首先是没法在编译时就报出变量未声明的错误，只有运行时才能知道（因为全局变量可能是顶层对象的属性创造的，而属性的创造是动态的）；
+
+其次，程序员很容易不知不觉地就创建了全局变量（比如打字出错）；最后，顶层对象的属性是到处可以读写的，这非常不利于模块化编程。另一方面，window对象有实体含义，指的是浏览器的窗口对象，顶层对象是一个有实体含义的对象，也是不合适的。
+
+ES6为了改变这一点，一方面规定，为了保持兼容性，var命令和function命令声明的全局变量，依旧是顶层对象的属性；另一方面规定，let命令、const命令、class命令声明的全局变量，不属于顶层对象的属性。也就是说，从ES6开始，全局变量将逐步与顶层对象的属性脱钩。
+{% highlight javascript %}
+var a = 1;
+// 如果在Node的REPL环境，可以写成global.a
+// 或者采用通用方法，写成this.a
+window.a // 1
+
+let b = 1;
+window.b // undefined
+{% endhighlight %}
+
+上面代码中，全局变量a由var命令声明，所以它是顶层对象的属性；全局变量b由let命令声明，所以它不是顶层对象的属性，返回undefined。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
