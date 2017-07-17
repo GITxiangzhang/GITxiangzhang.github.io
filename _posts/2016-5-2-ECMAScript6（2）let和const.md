@@ -1,5 +1,5 @@
 ---
-title: ECMAScript6(2) let const以及块级作用域
+title: ECMAScript 6 (2) let const以及块级作用域
 ---
 
 #### let

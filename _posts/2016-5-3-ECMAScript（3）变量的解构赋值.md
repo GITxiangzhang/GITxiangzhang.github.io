@@ -1,5 +1,5 @@
 ---
-title: ECMAScript6(3) 变量的解构赋值
+title: ECMAScript 6 (3) 变量的解构赋值
 ---
 
 #### 数组的解构赋值

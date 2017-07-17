@@ -1,5 +1,5 @@
 ---
-title: ECMAScript 6 简介
+title: ECMAScript 6 （1）简介
 ---
 
 #### 简介
