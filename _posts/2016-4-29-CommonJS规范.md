@@ -147,7 +147,7 @@ a.on('ready', function() {
 var exports = module.exports;
 {% endhighlight %}
 
-造成的结果是，在对外输出模块接口时，可以向exports对象添加方法。
+造成的结果是，在对外输出模块接口时，可以向exports对象添加方法。因为指向module.exports其实就是给module.exports添加方法
 
 {% highlight javascript %}
 exports.area = function (r) {
