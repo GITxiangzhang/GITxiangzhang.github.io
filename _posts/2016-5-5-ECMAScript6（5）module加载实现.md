@@ -13,7 +13,7 @@ title: ECMAScript6 (5) module加载实现
 <script src="path/to/myModule.js" async></script>
 {% endhighlight %}
 
-<script>标签打开defer或async属性，脚本就会异步加载，defer是“渲染完再执行”，async是“下载完就执行”。多个defer脚本，会按照它们在页面出现的顺序加载，
+标签打开defer或async属性，脚本就会异步加载，defer是“渲染完再执行”，async是“下载完就执行”。多个defer脚本，会按照它们在页面出现的顺序加载，
 而多个async脚本是不能保证加载顺序的。
 
 ----------------------------------
