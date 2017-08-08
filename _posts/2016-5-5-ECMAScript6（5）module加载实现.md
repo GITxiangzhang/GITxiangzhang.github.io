@@ -5,8 +5,8 @@ title: ECMAScript6 (5) module加载实现
 
 #### 浏览器加载
 
->html中通过<script>标签加载JavaScript脚本，默认同步，渲染引擎遇到<script>要等到脚本跑完再继续渲染，外部脚本还要等下载完，如果脚本比较大
-会造成阻塞，我们所以一般把<script>放在最后。但其实浏览器可以异步加载的。
+>html中通过script标签加载JavaScript脚本，默认同步，渲染引擎遇到'<script>'要等到脚本跑完再继续渲染，外部脚本还要等下载完，如果脚本比较大
+会造成阻塞，我们所以一般把'<script>'放在最后。但其实浏览器可以异步加载的。
 
 {% highlight javascript %}
 <script src="path/to/myModule.js" defer></script>
