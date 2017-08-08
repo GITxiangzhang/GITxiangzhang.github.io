@@ -18,11 +18,11 @@ title: ECMAScript6 (5) module加载实现
 
 ----------------------------------
 ##### 加载规则
->浏览器加载 ES6 模块，也使用<script>标签，但是要加入type="module"属性。
+>浏览器加载 ES6 模块，也使用script标签，但是要加入type="module"属性。
 {% highlight javascript %}
 <script type="module" src="foo.js"></script>
 {% endhighlight %}
-ES6 模块默认异步加载，等同于<script>标签的defer属性。
+ES6 模块默认异步加载，等同于script标签的defer属性。
 
 ES6 模块也允许内嵌在网页中，其他和ES5一致。
 
