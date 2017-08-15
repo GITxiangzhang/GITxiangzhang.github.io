@@ -1,5 +1,5 @@
 ---
-title: juqery extend()
+title: jquery extend()
 ---
 
 #### 第一部分
