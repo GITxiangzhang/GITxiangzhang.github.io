@@ -21,92 +21,78 @@ title: JavaScript异步编程四种方法
 
 本文总结了"异步模式"编程的4种方法，理解它们可以让你写出结构更合理、性能更出色、维护更方便的Javascript程序。
 
+[异步理解资料](http://www.cnblogs.com/chrischjh/p/4648395.html)
+
 ----------------------------------
 #### 回调函数
-1. ##### script 标签
-
+这是异步编程最基本的方法。
+假定有两个函数f1和f2，后者等待前者的执行结果。
 这是最原始的JavaScript文件加载方式。
 
-早期为了解决这些弊端一些复杂的框架会使用命名空间来组织这些模块接口，典型的YUI库。
-这个过程https://github.com/seajs/seajs/issues/547这篇博客讲的不错，可以了解。
+如果f1是一个很耗时的任务，可以考虑改写f1，把f2写成f1的回调函数。
 
-这种方式暴露显而易见弊端：
-* 全局作用域下变量冲突
-* 文件只能按照script 标签书写顺序进行加载
-* 开发必须主观解决模块间的依赖关系
-* 在大型项目中各种资源难以管理，长期积累的问题导致代码库混乱不堪。
+{% highlight JavaScript %}
+function f1(callback){
+　　　　setTimeout(function () {
+　　　　　　// f1的任务代码
+　　　　　　callback();
+　　　　}, 1000);
+　　}
 
-2. ##### CommonJS
-详情见我的博客 [commonJS规范](https://gitxiangzhang.github.io/xiangzhang.github.io/2016/04/29/CommonJS%E8%A7%84%E8%8C%83.html)
+f1(f2);
+{% endhighlight %}
 
-缺点：
-* 同步加载模式不适用于浏览器
-* 不能非阻塞并行多个加载
-
-3. ##### AMD
-详情见我的博客 [AMD](https://gitxiangzhang.github.io/xiangzhang.github.io/2016/04/30/AMD%E6%A8%A1%E5%9D%97%E5%8A%A0%E8%BD%BD.html)
-
-4. ##### CMD
-5. ##### ES6module
+采用这种方式，我们把同步操作变成了异步操作，f1不会堵塞程序运行，相当于先执行程序的主要逻辑，将耗时的操作推迟执行。
+回调函数的优点是简单、容易理解和部署，缺点是不利于代码的阅读和维护，各个部分之间高度耦合（Coupling），流程会很混乱，而且每个任务只能指定一个回调函数。
 
 ----------------------------------
-#### 期望的模块系统
-1. 前端模块要在浏览器执行，所以他们需要增量加载到浏览器中。模块的传输和加载 我们首先能想到两种极端的方式，一种是把所有模块都打包到一个文件中只请求一次，
-另一种是每个模块文件都单独请求，显而易见两种方式都不够完善，请求过多会启动变慢，一次请求全部，暂时用不到的模块也请求过来了，导致流量浪费
-响应也会变慢。
-我们所期望的一种模式是：按需进行懒加载，在实际用到某些模块的时候在进行增量跟新。
+#### 事件监听
+另一种思路是采用事件驱动模式。任务的执行不取决于代码的顺序，而取决于某个事件是否发生。
+还是以f1和f2为例。首先，为f1绑定一个事件（这里采用的jQuery的写法）。
 
-2. 可以兼容样式，图片，字体等众多类型模块资源。
+{% highlight JavaScript %}
 
-如何做到我们期望的： 在编译阶段，对整个代码进行静态分析，分析出各个模块的类型和他们的依赖关系，然后将不同类型的模块提交给适配的加载器处理
-比如一个用less 写的样式模块，可以先用less 加载器将他转换成 css模块，再通过css模块把他插入到页面的 style 标签中执行。webpack 就在这样的需求中
-诞生。
+f1.on('done', f2);
 
+　function f1(){
+　　　　setTimeout(function () {
+　　　　　　// f1的任务代码
+　　　　　　f1.trigger('done');
+　　　　}, 1000);
+　　}
+{% endhighlight %}
 
-
-----------------------------------
-#### webpack
-webpack 是一个模块打包器，他将根据模块的依赖关系进行静态分析，然后将这些模块按照指定的规则生成对应的静态资源。
-
-![webpack2]({{ site.baseurl }}/images/webpack2.jpg)
-
-这里提一下webpack和grunt gulp 有什么不一样：
-
-grunt 和 gulp 的工作方式是 ：Grunt和Gulp的工作方式是：在一个配置文件中，指明对某些文件进行类似编译，组合，压缩等任务的具体步骤，这个工具之后可以自动替你完成这些任务。
-
-![webpack1]({{ site.baseurl }}/images/webpack1.jpg)
-
-Webpack的工作方式是：把你的项目当做一个整体，通过一个给定的主文件（如：index.js），Webpack将从这个文件开始找到你的项目的所有依赖文件，使用loaders处理它们，最后打包为一个浏览器可识别的JavaScript文件。
+f1.trigger('done')表示，执行完成后，立即触发done事件，从而开始执行f2。
+这种方法的优点是比较容易理解，可以绑定多个事件，每个事件可以指定多个回调函数，而且可以"去耦合"（Decoupling），有利于实现模块化。
+缺点是整个程序都要变成事件驱动型，运行流程会变得很不清晰。
 
 ----------------------------------
-#### webpack特点
-1. ##### 代码拆分
+#### 发布订阅
+上一节的"事件"，完全可以理解成"信号"。
+我们假定，存在一个"信号中心"，某个任务执行完成，就向信号中心"发布"（publish）一个信号，其他任务可以向信号中心"订阅"（subscribe）这个信号，
+从而知道什么时候自己可以开始执行。这就叫做"发布/订阅模式"（publish-subscribe pattern），又称"观察者模式"（observer pattern）。
+这个模式有多种实现，下面采用的是Ben Alman的Tiny Pub/Sub，这是jQuery的一个插件。
+首先，f2向"信号中心"jQuery订阅"done"信号。
 
-webpack有两种组织模块依赖的方式，同步和异步。详情见 [webpack Code Splitting](https://gitxiangzhang.github.io/xiangzhang.github.io/2017/07/22/webpack-code-splitting.html)
+{% highlight JavaScript %}
+　　jQuery.subscribe("done", f2);
+//然后，f1进行如下改写：
+　　function f1(){
+　　　　setTimeout(function () {
+　　　　　　// f1的任务代码
+　　　　　　jQuery.publish("done");
+　　　　}, 1000);
+　　}
+{% endhighlight %}
+jQuery.publish("done")的意思是，f1执行完成后，向"信号中心"jQuery发布"done"信号，从而引发f2的执行。
+此外，f2完成执行后，也可以取消订阅（unsubscribe）。
 
-2. ##### loader
+{% highlight JavaScript %}
+　jQuery.unsubscribe("done", f2);
+{% endhighlight %}
 
-loder转换器可以将各种类型资源转换成JavaScript模块。这样任何资源都可以成为webpack可以处理的模块了。
-
-3. ##### 智能解析
-
-webpack 可以处理几乎所有第三方库，无论他们是CommonJS ，AMD 还是普通js文件，加载的时候可以用动态表达式。
-
-4. ##### 插件系统
-
-webpack 有丰富的插件系统。
-
-5. ##### 快速运行
-
-webpack 使用异步i/o 和多级缓存提高运行效率。使得webpack 能够以难以置信的速度增量编译。
-
-
-----------------------------------
-#### webpack 安装
-全局：npm i webpack -g
-
-本地：npm i webpack --save-dev
-
+这种方法的性质与"事件监听"类似，但是明显优于后者。因为我们可以通过查看"消息中心"，了解存在多少信号、每个信号有多少订阅者，从而监控程序的运行。
 
 ----------------------------------
-#### webpack 具体详解 见 [webpack demo详解](https://gitxiangzhang.github.io/xiangzhang.github.io/2017/07/20/webpack-%E6%95%B4%E7%90%86.html)
+#### Promises对象
+[Promises](http://es6.ruanyifeng.com/#docs/promise)
