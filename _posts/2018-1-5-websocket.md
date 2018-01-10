@@ -1,0 +1,428 @@
+---
+title: websocket
+
+---
+
+#### websocket与http
+WebSocket是HTML5出的东西（协议），也就是说HTTP协议没有变化，或者说没关系，但HTTP是不支持持久连接的（长连接，循环连接的不算）
+
+首先HTTP有 1.1 和 1.0 之说，也就是所谓的 keep-alive ，把多个HTTP请求合并为一个，但是 Websocket 其实是一个新协议，跟HTTP协议基本
+没有关系，只是为了兼容现有浏览器的握手规范而已，也就是说它是HTTP协议上的一种补充有交集，但是并不是全部。
+
+
+----------------------------------
+#### Websocket是什么样的协议，具体有什么优点
+
+首先，Websocket是一个持久化的协议，相对于HTTP这种非持久的协议来说。
+
+HTTP的生命周期通过 Request 来界定，也就是一个 Request 一个 Response ，那么在 HTTP1.0 中，这次HTTP请求就结束了。
+
+在HTTP1.1中进行了改进，使得有一个keep-alive，也就是说，在一个HTTP连接中，可以发送多个Request，接收多个Response。但是请记住
+Request = Response ， 在HTTP中永远是这样，也就是说一个request只能有一个response。而且这个response也是被动的，不能主动发起。
+
+首先Websocket是基于HTTP协议的，或者说借用了HTTP的协议来完成一部分握手。
+
+首先我们来看个典型的 Websocket 握手
+
+{% highlight javascript %}
+
+GET /chat HTTP/1.1
+Host: server.example.com
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==
+Sec-WebSocket-Protocol: chat, superchat
+Sec-WebSocket-Version: 13
+Origin: http://example.com
+
+{% endhighlight %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+>用来管理数据流，是一个可预测的状态容器,（数据流：用户交互，数据请求等等的一个抽象）
+
+1. 不用redux 我们组件数据流怎么工作：
+
+React 组件 componentDidMount 的时候初始化 Model，并监听 Model 的 change 事件，当 Model 发生改变时调用 React 组件的 setState
+方法重新 render 整个组件，最后在组件 componentWillUnmount 的时候取消监听并销毁 Model
+
+但是当应用变得复杂的时候，管理不断变化的 state 非常困难。如果一个 model 的变化会引起另一个 model 变化，那么当 view 变化时，
+就可能引起对应 model 以及另一个 model 的变化，依次地，可能会引起另一个 view 的变化。直至你搞不清楚到底发生了什么。
+
+通过限制更新发生的时间和方式，Redux 试图让 state 的变化变得可预测。
+
+他是怎么做到让 state可以预测的。
+
+1. 单一数据源
+
+整个应用的 state 被储存在一棵 object tree 中，并且这个 object tree 只存在于唯一一个 store 中。
+
+由于是单一的 state tree ，调试也变得非常容易。在开发中，你可以把应用的 state 保存在本地，从而加快开发速度。
+以前难以实现的如“撤销/重做”这类功能也变得轻
+
+（类似我们内贸站VO 中有很多model 当发什么一些操作可能修改了众多modle,这时做撤销功能时候成本就比较大了，而单一数据源的redux就相对简单。）
+
+
+2. State 是只读的
+
+惟一改变 state 的方法就是触发 action（dispatch），action 是一个用于描述已发生事件的普通对象。
+这样确保了视图和网络请求都不能直接修改 state,而需要使用新状态替换现有状态。新状态由操作(action)指定(reducer)，
+操作也是不可变的 JavaScript 对象，用于描述状态更改。
+
+3. 使用纯函数来执行修改
+
+为了描述 action 如何改变 state tree ，你需要编写 reducers。
+
+Reducer 只是一些纯函数，它接收先前的 state 和 action，并返回新的 state。刚开始你可以只有一个 reducer，随着应用变大，
+你可以把它拆成多个小的 reducers，分别独立地操作 state tree 的不同部分，因为 reducer 只是函数，你可以控制它们被调用的顺序，
+传入附加数据，甚至编写可复用的 reducer 来处理一些通用任务，如分页器。
+
+
+#### 数据流图对比
+
+常规mvc模式数据流
+
+ ![Image]({{ site.baseurl }}/images/MVCshuju.png)
+
+rendux 数据流
+
+ ![Image]({{ site.baseurl }}/images/renduxsuju.png)
+
+----------------------------------
+#### action
+
+Action 是数据以及用户操作等等的一个集合，相当于把所有的信息格式化为一种标准的格式，以便系统中的其他部分能够理解，他是一个信息的载体
+，它是 store 数据的唯一来源。我们会通过方法把他发送到store（store.dispatch（））
+
+ Action 本质上是JavaScript 普通对象。我们约定，action 内必须使用一个字符串类型的 type 字段来表示将要执行的动作。多数情况下，
+ type 会被定义成字符串常量。当应用规模越来越大时，建议使用单独的模块或文件来存放 action。
+
+ 社区有action规范参考[action规范](https://github.com/acdlite/flux-standard-action)
+
+{% highlight javascript %}
+
+{
+  type:"ADD_TODO",
+  id:nextTodoId,
+  text
+}
+
+{
+  type: TOGGLE_TODO,
+  id: 5
+}
+
+{
+  type:"SET_VISIBILITY",
+  filter
+}
+
+{% endhighlight %}
+
+##### Action Creator
+View 要发送多少种消息，就会有多少种 Action。如果都手写，会很麻烦。可以定义一个函数来生成 Action，这个函数就叫 Action Creator。
+
+如我们todolist 的demo[reactredux](https://github.com/GITxiangzhang/reactredux.git)
+
+{% highlight javascript %}
+const addTodo=(text)=>{
+    return{
+        type:"ADD_TODO",
+        id:nextTodoId,
+        text
+    }
+}
+
+const setVisibility=(filter)=>{
+    return{
+        type:"SET_VISIBILITY",
+        filter
+    }
+}
+
+const toggleTodo=(id)=>{
+    return{
+        type:"TOGGLE_TODO",
+        id
+    }
+}
+{% endhighlight %}
+
+
+----------------------------------
+#### Reducer
+action 只是描述了下要发生的事情，并没有涉及到如何跟新state,这就是reducer要做的事情。
+Store 收到 Action 以后，必须给出一个新的 State，这样 View 才会发生变化。这种 State 的计算过程就叫做 Reducer。
+
+Reducer是一个纯函数，接收旧的 state 和 action，返回新的 state。
+
+注意：Reducer是一个纯函数，只要传入参数相同，返回计算得到的下一个 state 就一定相同。没有特殊情况、没有副作用，没有 API 请求、
+没有变量修改，单纯执行计算。
+
+以我们todolist 为例子：
+
+{% highlight javascript %}
+
+const todo =(state,action)=>{
+    switch (action.type){
+    case "ADD_TODO":
+        return{
+            id:action.id,
+            text:action.text,
+            completed:false,
+        }
+    case  "TOGGLE_TODO":
+        if(state.id !== action.id){
+            return state
+        }
+        //es6 对象 assign方法
+        return Object.assign({},state,{
+            completed:!state.completed
+        })
+    default:
+        return state
+    }
+}
+{% endhighlight %}
+这里有两点要注意：
+
+1. 不要修改 state。 使用 Object.assign() 新建了一个副本。不能这样使用 Object.assign(state, { visibilityFilter: action.filter })，
+因为它会改变第一个参数的值。时刻谨记永远不要在克隆 state 前修改它。
+
+2. 在 default 情况下返回旧的 state。遇到未知的 action 时，一定要返回旧的 state。
+
+
+#### Reducer 拆分合并
+1. 随着应用变得复杂，需要对 reducer 函数 进行拆分，拆分后的每一块独立负责管理 state 的一部分。独立出单独的reducer文件处理。
+
+
+2. 我们知道redux 只有一个store 所以拆分Reducer后还要把这些Reducers合并成为一个reducer这时候我们该怎么做呢？
+
+redux提供 combineReducers 辅助函数，它的的作用是，把一个由多个不同 reducer 函数作为 value 的 object，合并成一个最终的 reducer 函数，
+然后就可以对这个 reducer 调用 createStore。
+
+合并后的 reducer 可以调用各个子 reducer，并把它们的结果合并成一个 state 对象。state 对象的结构由传入的多个 reducer
+的 key 决定。
+
+{
+  reducer1: ...
+  reducer2: ...
+}
+
+通过为传入对象的 reducer 命名不同来控制 state key 的命名。例如，你可以调用 combineReducers({ todos: myTodosReducer, counter: myCounterReducer }) 将 state 结构变为 { todos, counter }。
+
+通常的做法是命名 reducer，然后 state 再去分割那些信息，因此你可以使用 ES6 的简写方法：combineReducers({ counter, todos })。这与 combineReducers({ counter: counter, todos: todos }) 一样。
+
+详情见官方api [combineReducers](http://www.redux.org.cn/docs/api/combineReducers.html)
+
+----------------------------------
+#### Store
+前面我们学会了使用 action 来描述“发生了什么”，和使用 reducers 来根据 action 更新 state 的用法。
+
+Store 就是把它们联系到一起的对象。Store 有以下职责：
+
+* 维持应用的 state；
+* 提供 getState() 方法获取 state；
+* 提供 dispatch(action) 方法更新 state；
+* 通过 subscribe(listener) 注册监听器;
+* 通过 subscribe(listener) 返回的函数注销监听器。
+
+再次强调一下 Redux 应用只有一个单一的 store。当需要拆分数据处理逻辑时，你应该使用 reducer 组合 而不是创建多个 store。
+
+根据已有的 reducer 来创建 store 是非常容易的。我们使用 combineReducers() 将多个 reducer 合并成为一个。
+我们将其导入，并传递 createStore()。
+
+{% highlight javascript %}
+import { createStore } from 'redux'
+import todoApp from './reducers'
+let store = createStore(todoApp)
+{% endhighlight %}
+
+
+createStore() 的第二个参数是可选的, 用于设置 state 初始状态。这对开发同构应用时非常有用，服务器端 redux 应用的 state
+结构可以与客户端保持一致, 那么客户端可以将从网络接收到的服务端 state 直接用于本地数据初始化。
+
+
+----------------------------------
+#### react-redux
+Redux 和 React 之间没有关系。Redux 支持 React、Angular、Ember、jQuery 甚至纯 JavaScript。
+
+尽管如此，Redux 还是和 React 和 Deku 这类框架搭配起来用最好，因为这类框架允许你以 state 函数的形式来描述界面，
+Redux 通过 action 的形式来发起 state 变化。
+
+安装：
+
+npm install --save react-redux
+
+
+----------------------------------
+##### 容器组件（Smart/Container Components）和UI组件（Dumb/Presentational Components）
+
+Redux 的 React 绑定库包含了 容器组件和展示组件相分离 的开发思想。
+
+容器组件:用来解释组件怎么工作的，和数据流相关的，来表现逻辑的，不容易复用
+
+UI组件:用来表示和显示相关的，样式布局类。很容易复用
+
+通常我们在UI组件外部包裹一层容器组件用来连接redux，容器组件从redux获取state，将获取到的state转化成props传入到UI组件中，
+容器组件修改数据向redux派发 actions ，UI组件修改数据从 props 调用回调函数修改。
+
+
+
+----------------------------------
+##### 设计组件层次结构
+这不是redux的学习内容，但是却是很重要的react的开发思想，就像我们内贸站做开发时候也需要之前考虑model的数据结构一样，组件的层次结构应该
+根据之前的state结构，定义与之匹配的层次结构，这里以todolistdemo为例子：
+
+我们可以思考下state的结构：
+
+{% highlight javascript %}
+{
+  visibilityFilter: 'SHOW_ALL',
+  todos: [
+    {
+      text: 'Consider using Redux',
+      completed: true,
+    },
+    {
+      text: 'Keep all state in a single tree',
+      completed: false
+    }
+  ]
+}
+{% endhighlight %}
+
+根据state结构 我们可以很清楚的了解到，首先我们需要一个todo的列表，一个todo项被点击后，会增加一条删除线并标记completed。
+用户新增的时候增加一个todo。在页脚显示一个可以切换显示全部/只显示完成的/只显示未完成的组件。
+
+很容易抽象出：
+
+ * AddTodo 输入字段的输入框和按钮。
+
+ * TodoList 用于显示 todos 列表。
+
+ * todo 一个todo项。
+
+ * Footer 一个允许用户改变可见 todo 过滤器的组件
+
+ 各个组件又可以分离出 容器组件以及UI组件 详情直接读代码 [reactredux](https://github.com/GITxiangzhang/reactredux)
+
+
+
+
+----------------------------------
+##### 连接到Redux
+前面我们把组件拆分成了 UI组件和容器组件，这里我们需要将容器组件连接到redux,让它能够 dispatch actions 以及从 Redux store 读取到 state。
+
+另外这里提一点：
+1. Provider
+我们需要获取从之前安装好的 react-redux 提供的 Provider，并且在渲染之前将根组件包装进 <Provider>。
+{% highlight javascript %}
+import  React from "react";
+import  {render} from "react-dom";
+import  {Provider} from "react-redux";
+import  {createStore} from "redux";
+import todoApp from "./reducers";
+import APP from "./components/APP";
+
+let store= createStore(todoApp);
+render(
+    <Provider store={store}>
+        <APP/>
+    </Provider>,
+    document.getElementById('root')
+)
+{% endhighlight %}
+
+这么做使得store可以为下面的组件所用 （在内部，这个是通过 React 的 "context" 特性实现）
+
+
+2. connect
+react-redux 提供的 connect() 用于从 UI 组件生成容器组件。connect的意思，就是将这两种组件连起来。
+
+官网上尽量只做一个顶层的组件，或者 route 处理。从技术上来说你可以将应用中的任何一个组件 connect() 到 Redux store 中，但尽量避免这么做，
+因为这个数据流很难追踪。
+
+但是实际开发中还是会拆开啊！！！！
+
+
+
+connect([mapStateToProps], [mapDispatchToProps], [mergeProps],[options])
+
+* mapStateToProps(state, ownProps) : stateProps
+
+  这个函数允许我们将 store 中的数据作为 props 绑定到组件上。
+
+  {% highlight javascript %}
+  const mapStateToProps = (state) => {
+    return {
+      count: state.count
+    }
+  }
+  {% endhighlight %}
+
+
+  这个函数的第一个参数就是 Redux 的 store，我们从中摘取了 count 属性。你不必将 state 中的数据原封不动地传入组件，可以根据 state 中的数据，
+  动态地输出组件需要的（最小）属性。
+
+
+  函数的第二个参数 ownProps，是组件自己的 props。有的时候，ownProps 也会对其产生影响。
+
+
+  当 state 变化，或者 ownProps 变化的时候，mapStateToProps 都会被调用，计算出一个新的 stateProps，（在与 ownProps merge 后）更新给组件。
+
+
+
+
+* mapDispatchToProps(dispatch, ownProps): dispatchProps
+
+  mapDispatchToProps是connect函数的第二个参数，用来建立 UI 组件的参数到store.dispatch方法的映射。也就是说，它定义了哪些用户的操作
+  应该当作 Action，传给 Store。它可以是一个函数，也可以是一个对象。
+  如果mapDispatchToProps是一个函数，会得到dispatch和ownProps（容器组件的props对象）两个参数。返回一个对象，该对象的每个键值对都是
+  一个映射，定义了 UI 组件的参数怎样发出 Action。
+
+  如果mapDispatchToProps是一个对象，它的每个键名也是对应 UI 组件的同名参数，键值应该是一个函数，会被当作 Action creator ，
+  返回的 Action 会由 Redux 自动发出。
+
+
+
+* [mergeProps(stateProps, dispatchProps, ownProps): props] (Function): 如果指定了这个参数，mapStateToProps() 与
+   mapDispatchToProps() 的执行结果和组件自身的 props 将传入到这个回调函数中。该回调函数返回的对象将作为 props 传递到被包装的组件中。
+   你也许可以用这个回调函数，根据组件的 props 来筛选部分的 state 数据，或者把 props 中的某个特定变量与 action creator 绑定在一起。
+   如果你省略这个参数，默认情况下返回 Object.assign({}, ownProps, stateProps, dispatchProps) 的结果。
+
+
+
+
+* [options] (Object) 如果指定这个参数，可以定制 connector 的行为。
+  [pure = true] (Boolean): 如果为 true，connector 将执行 shouldComponentUpdate 并且浅对比 mergeProps 的结果，避免不必要的更新，
+  前提是当前组件是一个“纯”组件，它不依赖于任何的输入或 state 而只依赖于 props 和 Redux store 的 state。默认值为 true。
+  [withRef = false] (Boolean): 如果为 true，connector 会保存一个对被包装组件实例的引用，该引用通过 getWrappedInstance() 方法获得。
+  默认值为 false
+
+
+react-redux数据流图：
+
+
+ ![Image]({{ site.baseurl }}/images/redux.png)
+
+
+
+
+
+
