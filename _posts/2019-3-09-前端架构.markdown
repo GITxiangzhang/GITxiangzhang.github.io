@@ -1,8 +1,8 @@
 
-### 前端架构
+### Class
 
 ---
-# 前端架构分享
+# Class分享
 
 # 接口
 在TypeScript中，我们使用接口（Interface）来定义对象的类型。
