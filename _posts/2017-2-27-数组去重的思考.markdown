@@ -1,0 +1,199 @@
+
+### 数组去重的思考
+
+---
+## 数组去重
+  数组去重老生常谈，面试必问吧基本上，最近总结下数组去重的一些方法。
+### 双层循环
+最原始的方法
+
+```
+var array = [1, 2, 3, 2, 4, 3]
+
+function unique(array) {
+    var resArr = [];//用来存储结果
+    for (var i = 0; i < array.length; i++) {
+        for (var j = 0; j < resArr.length; j++) {
+            if (array[i] === resArr[j]) {
+                break;
+            }
+        }
+        if (j === resArr.length) {
+            resArr.push(array[i])
+        }
+    }
+    return resArr
+}
+
+unique(array) //[1, 2, 3, 4]
+
+```
+外层循环array 里面循环resArr,相等跳出，不相等的话满足j===resArr.length push进去。此方法逻辑简单，兼容性好~
+
+--------------------------------
+
+
+### indexOf
+用indexOf简化内层的循环
+
+```
+var array = [1, 2, 3, 2, 4, 3]
+function unique(array) {
+    var resArr = [];//用来存储结果
+    for (var i = 0; i < array.length; i++) {
+      if(resArr.indexOf(array[i])===-1){
+          resArr.push(array[i])
+        }
+    }
+    return resArr
+}
+
+unique(array) //[1, 2, 3, 4]
+
+```
+--------------------------------
+
+### 排序后去重
+如果我们先将数组排序，值相同的元素就会被排在一起，我们只要判断前后元素是否相等就可以进行去重了
+
+
+
+```
+let array = [1, 2, 3, 2, 4, 3]
+
+function unique(array) {
+    let sortedArray = array.sort()
+    let resArr = [];//用来存储结果
+    for (var i = 0; i < sortedArray.length; i++) {
+        if (sortedArray[i]!==sortedArray[i+1]) {
+            resArr.push(sortedArray[i])
+        }
+    }
+    return resArr
+}
+
+unique(array) //[1, 2, 3, 4]
+
+
+```
+--------------------------------------------
+
+
+### filter
+ES5 提供了filter方法，我们可以用来简化外层循环
+
+
+```
+unique(array) //[1, 2, 3, 4]
+
+let array = [1, 2, 3, 2, 4, 3]
+
+function unique(array) {
+    let resArr = array.filter((item, index, array) => {
+        return array.indexOf(item) === index
+    })
+    return resArr
+}
+
+unique(array) //[1, 2, 3, 4]
+
+//排序去重
+
+function unique(array) {
+    return resArr = array.sort().filter((item, index, array) => {
+        return array[index-1] !== item
+    })
+}
+
+```
+------------------------------------------
+
+### Object 键值对
+这种方法是利用一个空的 Object 对象，我们把数组的值存成 Object 的 key 值，比如 Object[value1] = true，在判断另一个值的时候，如果 Object[value2]存在的话，就说明该值是重复的。
+
+```
+let array = [1, 2, 3, 2, 4, 3,'1']
+function unique(array) {
+    let obj = {};
+    return array.filter(function(item, index, array){
+        return obj.hasOwnProperty(item) ? false : (obj[typeof item + item] = true)
+    })
+}
+
+unique(array) //[1, 2, 3, 4,'1']
+```
+--------------------------------------------
+
+### ES6 Set Map 去重
+ES6提供的新的数据结构Set，Map在数组去重中的用法
+
+```
+let array = [1, 2, 3, 2, 4, 3]
+
+function unique(array) {
+   return Array.from(new Set(array))
+}
+unique(array) //[1, 2, 3, 4]
+
+```
+简化下
+
+```
+let array = [1, 2, 3, 2, 4, 3]
+
+function unique(array) {
+   return [...new Set(array)]
+}
+unique(array) //[1, 2, 3, 4]
+
+```
+
+
+```
+let array = [1, 2, 3, 2, 4, 3]
+
+let unique=(arr)=>[...new Set(array)]
+
+unique(array) //[1, 2, 3, 4]
+
+```
+
+使用Map
+
+```
+let array = [1, 2, 3, 2, 4, 3]
+
+function unique(array) {
+   const map1=new Map()
+   return array.filter((item)=>!map1.has(item)&&map1.set(item,'a'))
+}
+unique(array) //[1, 2, 3, 4]
+
+```
+
+
+
+### 特殊类型比较
+如果数组里含有 null, undefined, NaN, Object 去重结果会如何
+
+```
+console.log(null == null); // true
+console.log(null === null); // true
+
+console.log(undefined == undefined); // true
+console.log(undefined === undefined); // true
+
+console.log(NaN == NaN); // false
+console.log(NaN === NaN); // false
+
+console.log(/a/ == /a/); // false
+console.log(/a/ === /a/); // false
+
+console.log({} == {}); // false
+console.log({} === {}); // false
+
+```
+
+indexOf 底层还是使用 === 进行判断，因为 NaN ==== NaN的结果为 false，所以使用 indexOf 查找不到 NaN 元素
+Set 认为尽管 NaN === NaN 为 false，但是这两个元素是重复的。
+优化后的键值对方法去重可以全部去重。
